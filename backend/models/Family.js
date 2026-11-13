@@ -63,6 +63,13 @@ const businessDetailsSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const housewifeDetailsSchema = new mongoose.Schema(
+  {
+    activities: { type: String, default: '' },
+  },
+  { _id: false }
+);
+
 const educationDetailsSchema = new mongoose.Schema(
   {
     instituteName: { type: String, default: '' },
@@ -108,6 +115,7 @@ const familyMemberSchema = new mongoose.Schema(
     otherStatus: { type: String, default: '' },
     workDetails: { type: workDetailsSchema, default: () => ({}) },
     businessDetails: { type: businessDetailsSchema, default: () => ({}) },
+    housewifeDetails: { type: housewifeDetailsSchema, default: () => ({}) },
     educationDetails: { type: educationDetailsSchema, default: () => ({}) },
     jobProfession: { type: String, default: '' },
     companyBusinessName: { type: String, default: '' },

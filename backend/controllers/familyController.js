@@ -148,6 +148,10 @@ function validateFamilyMember(member, idx) {
     if (!String(bd.businessName || '').trim()) return `${pos}: Business Name is required for Business status.`;
     if (!bd.businessType) return `${pos}: Business Type is required for Business status.`;
   }
+  if (member.workStatus === 'Housewife') {
+    const hd = member.housewifeDetails || {};
+    if (!String(hd.activities || '').trim()) return `${pos}: Daily Activities / Responsibilities is required for Housewife status.`;
+  }
 
   return null;
 }
@@ -185,6 +189,13 @@ function cleanFamilyMember(member) {
     next.businessDetails = { businessName: '', businessType: '', otherDetails: '' };
   } else if (!next.businessDetails) {
     next.businessDetails = { businessName: '', businessType: '', otherDetails: '' };
+  }
+  if (next.workStatus !== 'Housewife') {
+    next.housewifeDetails = { activities: '' };
+  } else {
+    next.housewifeDetails = {
+      activities: String(next.housewifeDetails?.activities || '').trim(),
+    };
   }
   if (next.workStatus !== 'Student') {
     next.educationDetails = {
@@ -328,9 +339,6 @@ async function submitFamily(req, res, next) {
       }
       if (!businessWork.businessType) {
         return res.status(400).json({ success: false, message: 'Business Type is required.' });
-      }
-      if (!String(businessWork.industry || '').trim()) {
-        return res.status(400).json({ success: false, message: 'Industry is required.' });
       }
       if (String(businessWork.yearsInBusiness || '').trim() === '') {
         return res.status(400).json({ success: false, message: 'Years in Business is required.' });

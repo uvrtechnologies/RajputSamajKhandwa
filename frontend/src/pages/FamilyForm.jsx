@@ -111,7 +111,7 @@ export default function FamilyForm() {
   const [memberErrors, setMemberErrors] = useState([]);
 
   const [businessWork, setBusinessWork] = useState({
-    occupationType: '', businessName: '', businessType: '', industry: '', yearsInBusiness: '', businessAddress: '',
+    occupationType: '', businessName: '', businessType: '', yearsInBusiness: '', businessAddress: '',
     jobTitle: '', employer: '', designation: '', yearsInRole: '', workAddress: '',
     profession: '', organization: '', yearsExperience: '', institutionName: '', educationLevel: '',
     courseOrSubject: '', studyYear: '', studentStatus: '', previousOccupation: '', retirementYear: '',
@@ -258,7 +258,6 @@ export default function FamilyForm() {
     if (businessWork.occupationType === 'Business Owner' || businessWork.occupationType === 'Self Employed') {
       if (!String(businessWork.businessName || '').trim()) return failField('main-businessName', 'Business Name is required.', 1);
       if (!businessWork.businessType) return failField('main-businessType', 'Business Type is required.', 1);
-      if (!String(businessWork.industry || '').trim()) return failField('main-industry', 'Industry is required.', 1);
       if (String(businessWork.yearsInBusiness || '').trim() === '') return failField('main-yearsInBusiness', 'Years in Business is required.', 1);
       if (Number(businessWork.yearsInBusiness) < 0) return failField('main-yearsInBusiness', 'Years in business cannot be negative.', 1);
       if (!String(businessWork.businessAddress || '').trim()) return failField('main-businessAddress', 'Business Address is required.', 1);
@@ -550,7 +549,6 @@ export default function FamilyForm() {
                     </select>
                     {showFieldError('main-businessType')}
                   </Field>
-                  <Field label="Industry" required><input id="main-industry" className={inputCls} placeholder="e.g. Technology" value={businessWork.industry} onChange={(e) => setBW('industry', e.target.value.trimStart())} />{showFieldError('main-industry')}</Field>
                   <Field label="Years in Business" required><input id="main-yearsInBusiness" type="number" min="0" className={inputCls} placeholder="0" value={businessWork.yearsInBusiness} onChange={(e) => setBW('yearsInBusiness', e.target.value)} />{showFieldError('main-yearsInBusiness')}</Field>
                   <Field label="Business Address" required><input id="main-businessAddress" className={inputCls} placeholder="123 Business Rd, Suite 100" value={businessWork.businessAddress} onChange={(e) => setBW('businessAddress', e.target.value.trimStart())} />{showFieldError('main-businessAddress')}</Field>
                 </div>
