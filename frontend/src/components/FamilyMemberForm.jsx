@@ -18,15 +18,28 @@ let familyMemberFormSequence = 0;
 function toDateInputValue(value) {
   const raw = String(value || '').trim();
   const isoMatch = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T.*)?$/);
-  const usMatch = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-  const match = isoMatch
-    ? [isoMatch[1], isoMatch[2], isoMatch[3]]
-    : usMatch
-      ? [usMatch[3], usMatch[1], usMatch[2]]
-      : null;
-  if (!match) return '';
-
-  const [, year, month, day] = match;
+  const slashMatch = raw.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (!isoMatch && !slashMatch) return '';
+  let year;
+  let month;
+  let day;
+  if (isoMatch) {
+    [, year, month, day] = isoMatch;
+  } else {
+    const first = Number(slashMatch[1]);
+    const second = Number(slashMatch[2]);
+    year = slashMatch[3];
+    if (first > 12) {
+      day = first;
+      month = second;
+    } else if (second > 12) {
+      month = first;
+      day = second;
+    } else {
+      day = first;
+      month = second;
+    }
+  }
   const date = new Date(Number(year), Number(month) - 1, Number(day));
   if (
     date.getFullYear() !== Number(year)
@@ -35,6 +48,15 @@ function toDateInputValue(value) {
   ) return '';
 
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function dateForTextInput(value) {
+  const raw = String(value || '');
+  if (!/^\d{4}-\d{1,2}-\d{1,2}(?:T.*)?$/.test(raw.trim())) return raw;
+  const iso = toDateInputValue(value);
+  if (!iso) return String(value || '');
+  const [year, month, day] = iso.split('-');
+  return `${day}/${month}/${year}`;
 }
 
 function todayForDateInput() {
@@ -101,6 +123,18 @@ export function validateMember(member, idx) {
   }
   if (member.mobileNumber && validateMobileForMember(member.mobileNumber)) {
     return invalid('mobileNumber', `${pos}: Please enter a valid 10-digit Indian mobile number.`);
+  }
+  const dateOfBirthOrAge = String(member.dateOfBirthOrAge || '').trim();
+  if (dateOfBirthOrAge) {
+    if (/^\d+$/.test(dateOfBirthOrAge)) {
+      const age = Number(dateOfBirthOrAge);
+      if (age > 150) return invalid('dateOfBirthOrAge', `${pos}: Age must be between 0 and 150.`);
+    } else {
+      const dob = toDateInputValue(dateOfBirthOrAge);
+      if (!dob || dob > todayForDateInput()) {
+        return invalid('dateOfBirthOrAge', `${pos}: Enter a valid date as DD/MM/YYYY or a valid age.`);
+      }
+    }
   }
   if (member.workStatus === 'Student') {
     const edu = member.educationDetails || {};
@@ -177,7 +211,7 @@ export function validateMember(member, idx) {
 
 const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, index, onChange, onRemove, error }, ref) {
   const [dobMode, setDobMode] = React.useState(() => (
-    member.dateOfBirthOrAge && !toDateInputValue(member.dateOfBirthOrAge) ? 'age' : 'dob'
+    member.dateOfBirthOrAge && /^\d+$/.test(String(member.dateOfBirthOrAge).trim()) ? 'age' : 'dob'
   ));
   const set = (key, value) => onChange({ ...member, [key]: value });
   const changeDobMode = (mode) => {
@@ -185,8 +219,6 @@ const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, in
     setDobMode(mode);
     set('dateOfBirthOrAge', '');
   };
-  const maxDob = todayForDateInput();
-
   const setWork = (key, value) =>
     onChange({ ...member, workDetails: { ...(member.workDetails || emptyWork()), [key]: value } });
 
@@ -321,17 +353,22 @@ const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, in
         {dobMode === 'dob' ? (
           <>
             <input
-              type="date"
+              type="text"
+              inputMode="numeric"
+              maxLength={10}
               className={inputCls}
+              placeholder="DD/MM/YYYY"
               aria-label="Family member date of birth"
-              max={maxDob}
-              value={toDateInputValue(member.dateOfBirthOrAge)}
-              onChange={(e) => {
-                if (e.target.value) set('dateOfBirthOrAge', e.target.value);
+              value={dateForTextInput(member.dateOfBirthOrAge)}
+              onChange={(e) => set('dateOfBirthOrAge', e.target.value)}
+              onBlur={(e) => {
+                const normalized = toDateInputValue(e.target.value);
+                if (normalized) set('dateOfBirthOrAge', normalized);
               }}
-              onBlur={(e) => set('dateOfBirthOrAge', e.target.value)}
+              aria-invalid={!!fieldError('dateOfBirthOrAge')}
             />
-            <p className="mt-1 text-xs text-gray-500">Select the date from the calendar.</p>
+            {fieldError('dateOfBirthOrAge') && <div className={errCls}>{fieldError('dateOfBirthOrAge')}</div>}
+            <p className="mt-1 text-xs text-gray-500">Type the date as DD/MM/YYYY.</p>
           </>
         ) : (
           <>
@@ -346,7 +383,9 @@ const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, in
               aria-label="Family member age in years"
               value={member.dateOfBirthOrAge || ''}
               onChange={(e) => set('dateOfBirthOrAge', e.target.value)}
+              aria-invalid={!!fieldError('dateOfBirthOrAge')}
             />
+            {fieldError('dateOfBirthOrAge') && <div className={errCls}>{fieldError('dateOfBirthOrAge')}</div>}
             <p className="mt-1 text-xs text-gray-500">Enter age in whole years.</p>
           </>
         )}
