@@ -148,11 +148,6 @@ function validateFamilyMember(member, idx) {
     if (!String(bd.businessName || '').trim()) return `${pos}: Business Name is required for Business status.`;
     if (!bd.businessType) return `${pos}: Business Type is required for Business status.`;
   }
-  if (member.workStatus === 'Housewife') {
-    const hd = member.housewifeDetails || {};
-    if (!String(hd.activities || '').trim()) return `${pos}: Daily Activities / Responsibilities is required for Housewife status.`;
-  }
-
   return null;
 }
 

@@ -88,7 +88,6 @@ function emptyWork() { return { occupation: '', organization: '', designation: '
 function emptyBusiness() { return { businessName: '', businessType: '', otherDetails: '' }; }
 function emptyFarmer() { return { farmType: '', yearsFarming: '', farmAddress: '' }; }
 function emptyRetired() { return { previousOccupation: '', retirementYear: '' }; }
-function emptyHousewife() { return { activities: '' }; }
 function emptyEdu() {
   return {
     instituteName: '', educationLevel: '', classOrYear: '', streamOrSubject: '',
@@ -198,10 +197,6 @@ export function validateMember(member, idx) {
       return invalid('retirementYear', `${pos}: Retirement Year must be between 1900 and ${currYr}.`);
     }
   }
-  if (member.workStatus === 'Housewife') {
-    const hd = member.housewifeDetails || {};
-    if (!String(hd.activities || '').trim()) return invalid('activities', `${pos}: Daily Activities / Responsibilities is required for Housewife status.`);
-  }
   if (member.workStatus === 'Not Working') {
     const nw = member.notWorkingDetails || '';
     if (!String(nw || '').trim()) return invalid('notWorkingDetails', `${pos}: Current Status / Reason is required for Not Working status.`);
@@ -231,9 +226,6 @@ const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, in
   const setRetired = (key, value) =>
     onChange({ ...member, retiredDetails: { ...(member.retiredDetails || emptyRetired()), [key]: value } });
 
-  const setHousewife = (key, value) =>
-    onChange({ ...member, housewifeDetails: { ...(member.housewifeDetails || emptyHousewife()), [key]: value } });
-
   const setNotWorking = (value) =>
     onChange({ ...member, notWorkingDetails: value });
 
@@ -258,7 +250,6 @@ const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, in
     if (value !== 'Student') next.educationDetails = emptyEdu();
     if (value !== 'Farmer') next.farmerDetails = emptyFarmer();
     if (value !== 'Retired') next.retiredDetails = emptyRetired();
-    if (value !== 'Housewife') next.housewifeDetails = emptyHousewife();
     if (value !== 'Not Working') next.notWorkingDetails = '';
     onChange(next);
   };
@@ -275,14 +266,12 @@ const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, in
   const bd = member.businessDetails || emptyBusiness();
   const fd = member.farmerDetails || emptyFarmer();
   const rd = member.retiredDetails || emptyRetired();
-  const hd = member.housewifeDetails || emptyHousewife();
   const nwd = member.notWorkingDetails || '';
   const ed = member.educationDetails || emptyEdu();
   const showWork = member.workStatus === 'Working';
   const showBusiness = member.workStatus === 'Business';
   const showFarmer = member.workStatus === 'Farmer';
   const showRetired = member.workStatus === 'Retired';
-  const showHousewife = member.workStatus === 'Housewife';
   const showNotWorking = member.workStatus === 'Not Working';
   const showStudent = member.workStatus === 'Student';
 
@@ -528,16 +517,6 @@ const FamilyMemberForm = React.forwardRef(function FamilyMemberForm({ member, in
           </div>
         )}
 
-        {showHousewife && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <h4 className="text-sm font-bold text-gray-800 mb-2">Household Details <span className="text-red-500">(Required)</span></h4>
-            <Field label="Daily Activities / Responsibilities" required>
-              <textarea id={memberFieldId('activities')} className={inputCls} rows={2} placeholder="e.g. Household management, Child care, Cooking" value={hd.activities} onChange={(e) => setHousewife('activities', e.target.value)} aria-invalid={!!fieldError('activities')} />
-              {fieldError('activities') && <div className={errCls}>{fieldError('activities')}</div>}
-            </Field>
-          </div>
-        )}
-
         {showNotWorking && (
           <div className="mt-3 pt-3 border-t border-gray-100">
             <Field label="Current Status / Reason" required>
@@ -648,7 +627,6 @@ export const emptyFamilyMember = () => ({
   businessDetails: emptyBusiness(),
   farmerDetails: emptyFarmer(),
   retiredDetails: emptyRetired(),
-  housewifeDetails: emptyHousewife(),
   notWorkingDetails: '',
   educationDetails: emptyEdu(),
   achievements: '',
